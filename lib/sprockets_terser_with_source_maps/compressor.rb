@@ -22,21 +22,31 @@ module SprocketsTerserWithSourceMaps
       data = input.fetch(:data)
       name = input.fetch(:name)
 
-      compressed_js, map = @terser.compile_with_map(data, input_options)
+      if name.include? '-bundle'
+        # Each webpack bundle already has a corresponding sourcemap, so let's use that
+        sourcemap = JSON.parse(File.read("#{input[:filename]}.map"))
+        sourcemap_json = sourcemap.to_json
 
-      sourcemap = JSON.parse(map)
-
-      if Rails.application.config.assets.sourcemaps_embed_source
-        sourcemap['sourcesContent'] = [data]
+        # Each webpack bundle is already minified, so let's only strip the existing
+        # sourcemap reference; we'll replace it with a fingerprinted version below.
+        compressed_js = data.sub(/\/\/# sourceMappingURL=.*$/, '').rstrip
       else
-        # Generate uncompressed asset
-        uncompressed_url = generate_asset_file(name, data, Rails.application.config.assets.uncompressed_prefix)
+        compressed_js, map = @terser.compile_with_map(data, input_options)
 
-        sourcemap['sources'] = [uncompressed_url]
+        sourcemap = JSON.parse(map)
+
+        if Rails.application.config.assets.sourcemaps_embed_source
+          sourcemap['sourcesContent'] = [data]
+        else
+          # Generate uncompressed asset
+          uncompressed_url = generate_asset_file(name, data, Rails.application.config.assets.uncompressed_prefix)
+
+          sourcemap['sources'] = [uncompressed_url]
+        end
+
+        sourcemap['file'] = "#{name}.js"
+        sourcemap_json = sourcemap.to_json
       end
-
-      sourcemap['file'] = "#{name}.js"
-      sourcemap_json = sourcemap.to_json
 
       # Generate sourcemap file
       sourcemap_url = generate_asset_file(
