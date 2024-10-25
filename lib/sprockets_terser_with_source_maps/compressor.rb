@@ -47,6 +47,7 @@ module SprocketsTerserWithSourceMaps
         sourcemap['file'] = "#{name}.js"
         sourcemap_json = sourcemap.to_json
       end
+      binding.pry
 
       # Generate sourcemap file
       sourcemap_url = generate_asset_file(
