@@ -4,6 +4,8 @@
 
 # SprocketsTerserWithSourceMaps
 
+This is forked from the main repo primarily so that we can have it skip our webpack bundles. This change is modeled on [academia-edu/sprockets_uglifier_with_source_maps](https://github.com/academia-edu/sprockets_uglifier_with_source_maps), for which we did a similar thing. We're doing it here now because we're upgrading from Uglifier to Terser.
+
 Create source maps when compressing assets in your Rails applications.
 
 This gem uses Terser to create source maps for your concatenated javascripts in Rails.
